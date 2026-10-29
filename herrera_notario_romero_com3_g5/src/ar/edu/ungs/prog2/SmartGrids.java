@@ -145,16 +145,19 @@ public class SmartGrids implements ISmartGrids {
 	
 	    planta.actualizarEstado(false, LocalDateTime.parse(fechaHora));
 	}
+
+	private Planta obtenerPlantaOExcepcion(String nombre) {
+	    Planta planta = this.plantas.get(nombre);
+	    if (planta == null) {
+	        throw new RuntimeException("La planta no existe: " + nombre);
+	    }
+	    return planta;
+	}
 	
 	@Override
 	public boolean estaActiva(String nombre) {
-	    Planta planta = plantas.get(nombre);
-	
-	    if (planta == null) {
-	        throw new RuntimeException("La planta no existe");
-	    }
-	
-	    return planta.estaActiva();
+	    Planta p = obtenerPlantaOExcepcion(nombre); 
+	    return p.estaActiva(); 
 	}
 
 	@Override
@@ -237,14 +240,8 @@ public class SmartGrids implements ISmartGrids {
 
 	@Override
 	public double totalGenerado(String nombre) {
-	
-	    Planta planta = plantas.get(nombre);
-	
-	    if (planta == null) {
-	        throw new RuntimeException("La planta no existe");
-	    }
-	
-	    return planta.totalGenerado();
+	    Planta p = obtenerPlantaOExcepcion(nombre); 
+	    return p.totalGenerado(); 
 	}
 
 
