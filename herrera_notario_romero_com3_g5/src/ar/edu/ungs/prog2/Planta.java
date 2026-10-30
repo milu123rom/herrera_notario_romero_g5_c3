@@ -25,12 +25,17 @@ public abstract class Planta {
         this.periodosInactivos = new ArrayList<>();
     }
     
-    String DataDePlantas() {
-    	//este es el metodo creado para llamar en consultar planta en smartgrids
-        String estadoDePlaantaString = this.activaEstado ? "ACTIVA" : "INACTIVA";
+    public String DataDePlantas() {
+    	String estadoDePlantaString; 
+    	if(this.activaEstado) {
+    		estadoDePlantaString = "ACTIVA"; 
+    	} else {
+    		estadoDePlantaString = "INACTIVA"; 
+    	}
         DateTimeFormatter formato = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         String fechaExacta = this.fechaHoraPuestaEnFuncionamiento.format(formato);
-        return this.nombre + " (" + estadoDePlaantaString + "): " + fechaExacta;
+        
+        return this.nombre + " (" + estadoDePlantaString + "): " + fechaExacta;
     }
     
     
@@ -170,19 +175,25 @@ public abstract class Planta {
 	public int[] histogramaCumplimiento(LocalDateTime desde,
 	        LocalDateTime hasta) {
 	
-	    int[] histograma = new int[24];
+	    int[] histograma = new int[24];  //24 horas del dia (0 a 23)
 	
-	    for (Monitoreo monitoreo : registro) {
+	    for (Monitoreo m : registro) {
 	
-	        LocalDateTime fecha = monitoreo.consultarFechaHora();
-	
-	        if (!fecha.isBefore(desde)
-	                && !fecha.isAfter(hasta)
-	                && cumpleCuota(monitoreo)) {
-	
-	            int hora = fecha.getHour();
-	            histograma[hora]++;
-	        }
+//	        LocalDateTime fecha = monitoreo.consultarFechaHora();
+//	
+//	        if (!fecha.isBefore(desde)
+//	                && !fecha.isAfter(hasta)
+//	                && cumpleCuota(monitoreo)) {
+//	
+//	            int hora = fecha.getHour();
+//	            histograma[hora]++;
+//	        }
+	    	if(m.consultarFechaHora().isEqual(desde) || m.consultarFechaHora().isAfter(desde) && (m.consultarFechaHora().isEqual(hasta) || m.consultarFechaHora().isBefore(hasta))){
+	    		if(this.cumpleCuota(m)) {
+	    			int hora = m.consultarFechaHora().getHour(); //Devuelve un avlor de 0 a 23
+	    			histograma[hora]++; 
+	    		}
+	    	}
 	    }
 	
 	    return histograma;
@@ -220,6 +231,9 @@ public abstract class Planta {
 	}
 
 
+    public String nombrePlanta() {
+    	return this.nombre; 
+    }
     
     public boolean estaActiva() {
     	return activaEstado; 

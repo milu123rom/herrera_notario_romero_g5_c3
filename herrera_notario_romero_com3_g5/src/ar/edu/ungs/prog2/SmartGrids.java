@@ -1,9 +1,11 @@
 package ar.edu.ungs.prog2;
 import java.util.ArrayList;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.TreeMap;  
 
 public class SmartGrids implements ISmartGrids {
 	private Map<String, Planta> plantas;
@@ -112,11 +114,12 @@ public class SmartGrids implements ISmartGrids {
 
 	@Override
 	public double capacidadMinimaCuota(String nombre) {
+		if(nombre == null || !plantas.containsKey(nombre)) {
+			throw new RuntimeException("La planta" + nombre + "no existe"); 
+		}
+		
+		//Buscamos la planta y delegamos el calculo por polimorfismo
 	    Planta planta = plantas.get(nombre);
-	
-	    if (planta == null) {
-	        throw new RuntimeException("La planta no existe");
-	    }
 	
 	    return planta.capacidadMinimaCuota();
 	}
@@ -146,18 +149,22 @@ public class SmartGrids implements ISmartGrids {
 	    planta.actualizarEstado(false, LocalDateTime.parse(fechaHora));
 	}
 
-	private Planta obtenerPlantaOExcepcion(String nombre) {
-	    Planta planta = this.plantas.get(nombre);
-	    if (planta == null) {
-	        throw new RuntimeException("La planta no existe: " + nombre);
-	    }
-	    return planta;
-	}
+//	private Planta obtenerPlantaOExcepcion(String nombre) {
+//	    Planta planta = this.plantas.get(nombre);
+//	    if (planta == null) {
+//	        throw new RuntimeException("La planta no existe: " + nombre);
+//	    }
+//	    return planta;
+//	}
 	
 	@Override
 	public boolean estaActiva(String nombre) {
-	    Planta p = obtenerPlantaOExcepcion(nombre); 
-	    return p.estaActiva(); 
+	    Planta planta = plantas.get(nombre); 
+	    
+	    if(planta == null) {
+	    	throw new RuntimeException("La planta no existe"); 
+	    }
+	    return planta.estaActiva(); 
 	}
 
 	@Override
@@ -240,8 +247,12 @@ public class SmartGrids implements ISmartGrids {
 
 	@Override
 	public double totalGenerado(String nombre) {
-	    Planta p = obtenerPlantaOExcepcion(nombre); 
-	    return p.totalGenerado(); 
+	    Planta planta = plantas.get(nombre); 
+	    
+	    if(planta == null) {
+	    	throw new RuntimeException("La planta no existe"); 
+	    }
+	    return planta.totalGenerado(); 
 	}
 
 
@@ -269,8 +280,11 @@ public class SmartGrids implements ISmartGrids {
 	        throw new RuntimeException("La planta no existe");
 	    }
 	
-	    LocalDateTime desde = LocalDateTime.parse(fechaDesde);
-	    LocalDateTime hasta = LocalDateTime.parse(fechaHasta);
+//	    LocalDateTime desde = LocalDateTime.parse(fechaDesde);
+//	    LocalDateTime hasta = LocalDateTime.parse(fechaHasta);
+	    
+	    LocalDateTime desde = fechaDesde.contains("T") ? LocalDateTime.parse(fechaDesde) : LocalDate.parse(fechaDesde).atStartOfDay(); 
+	    LocalDateTime hasta = fechaHasta.contains("T") ? LocalDateTime.parse(fechaHasta) : LocalDate.parse(fechaHasta).atTime(23, 59, 59); 
 	
 	    if (desde.isAfter(hasta)) {
 	        throw new RuntimeException("El rango de fechas es inválido");
@@ -284,8 +298,9 @@ public class SmartGrids implements ISmartGrids {
 	@Override
 	public Map<String, Integer> plantasRenovablesPorFuente() {
 	
-	    Map<String, Integer> resultado = new LinkedHashMap<>();
-	
+//	    Map<String, Integer> resultado = new LinkedHashMap<>();
+	    Map<String, Integer> resultado = new TreeMap<>(); 
+	    
 	    for (Planta planta : plantas.values()) {
 	
 	        if (planta instanceof PlantasRenovables) {
@@ -293,12 +308,14 @@ public class SmartGrids implements ISmartGrids {
 	            PlantasRenovables renovable = (PlantasRenovables) planta;
 	            String fuente = renovable.consultarFuentePrimaria();
 	
-	            if (resultado.containsKey(fuente)) {
-	                int cantidad = resultado.get(fuente);
-	                resultado.put(fuente, cantidad + 1);
-	            } else {
-	                resultado.put(fuente, 1);
-	            }
+//	            if (resultado.containsKey(fuente)) {
+//	                int cantidad = resultado.get(fuente);
+//	                resultado.put(fuente, cantidad + 1);
+//	            } else {
+//	                resultado.put(fuente, 1);
+//	            }
+	            //Sumamos 1 a la fuente correspondiente usando getOrDefault
+	            resultado.put(fuente, resultado.getOrDefault(fuente, 0) + 1); 
 	        }
 	    }
 	
@@ -312,13 +329,18 @@ public class SmartGrids implements ISmartGrids {
 	
 	    List<String> resultado = new ArrayList<>();
 	
-	    for (String nombre : plantas.keySet()) {
-	
-	        Planta planta = plantas.get(nombre);
-	
-	        if (!planta.algunaVezCumplioCuota()) {
-	            resultado.add(nombre);
-	        }
+//	    for (String nombre : plantas.keySet()) {
+//	
+//	        Planta planta = plantas.get(nombre);
+//	
+//	        if (!planta.algunaVezCumplioCuota()) {
+//	            resultado.add(nombre);
+//	        }
+//	    }
+	    for(Planta planta : plantas.values()) {
+	    	if(!planta.algunaVezCumplioCuota()) {
+	    		resultado.add(planta.nombrePlanta()); 
+	    	}
 	    }
 	
 	    return resultado;
@@ -330,9 +352,7 @@ public class SmartGrids implements ISmartGrids {
 	
 	    StringBuilder resultado = new StringBuilder();
 	
-	    for (String nombre : plantas.keySet()) {
-	
-	        Planta planta = plantas.get(nombre);
+	    for (Planta planta : plantas.values()) {
 	
 	        if (planta instanceof PlantaEolica) {
 	
@@ -345,7 +365,7 @@ public class SmartGrids implements ISmartGrids {
 	                    resultado.append("\n");
 	                }
 	
-	                resultado.append(nombre);
+	                resultado.append(eolica.nombrePlanta());
 	                resultado.append(": ");
 	                resultado.append(horas);
 	            }
@@ -373,27 +393,23 @@ public class SmartGrids implements ISmartGrids {
 	@Override
 	public List<String> plantasOrdenadasPorEnergiaGenerada() {
 	
-	    List<String> resultado = new ArrayList<>();
-	    List<String> nombres = new ArrayList<>(plantas.keySet());
-	
-	    while (!nombres.isEmpty()) {
-	
-	        String nombreMayor = nombres.get(0);
-	
-	        for (String nombre : nombres) {
-	
-	            if (plantas.get(nombre).totalGenerado() > plantas.get(nombreMayor).totalGenerado()) {
-	
-	                nombreMayor = nombre;
-	            }
-	        }
-	
-	        resultado.add(nombreMayor + ": " + plantas.get(nombreMayor).totalGenerado());
-	
-	        nombres.remove(nombreMayor);
+//	    List<String> resultado = new ArrayList<>();
+//	    List<String> nombres = new ArrayList<>(plantas.keySet());
+	    List<PlantaEnergia> auxiliares = new ArrayList<>(); 
+	    
+	    for(Planta planta : plantas.values()) {
+	    	auxiliares.add(new PlantaEnergia(planta)); 
 	    }
-	
-	    return resultado;
+	    
+	    //Ordenamos con Collections.sort usando el Comparable
+	    java.util.Collections.sort(auxiliares); 
+	    
+	    //Psamos los objetos auxiliares a String
+	    List<String> resultado = new ArrayList<>(); 
+	    for(PlantaEnergia p : auxiliares) {
+	    	resultado.add(p.toString());; 
+	    }
+	    return resultado; 
 	}
 
 
@@ -405,16 +421,26 @@ public class SmartGrids implements ISmartGrids {
 	
 	    LocalDateTime fecha = LocalDateTime.parse(fechaHora);
 	
-	    for (String nombre : plantas.keySet()) {
-	
-	        Planta planta = plantas.get(nombre);
-	
+	    for (Planta planta : plantas.values()) {
 	        if (planta.estuvoInactivaEn(fecha)) {
-	            resultado.add(nombre);
+	            resultado.add(planta.nombrePlanta());
 	        }
 	    }
 	
 	    return resultado;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder(); 
+		sb.append("SMARTGRIDS\n"); 
+		sb.append("Cantidad de plantas registradas en smartgrids: ").append(plantas.size()).append("\n"); 
+		sb.append("Detalle de Plantas-\n"); 
+		
+		for(Planta p : plantas.values()) {
+			sb.append("- ").append(p.toString()).append("\n"); 
+		}
+		return sb.toString(); 
 	}
 
 
