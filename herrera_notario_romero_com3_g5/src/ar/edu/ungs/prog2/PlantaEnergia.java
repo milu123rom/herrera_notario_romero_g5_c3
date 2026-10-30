@@ -10,7 +10,8 @@ public class PlantaEnergia implements Comparable<PlantaEnergia>{
 	@Override
 	public int compareTo(PlantaEnergia otra) {
 		//Orden descendente (de mayor a menor energia generada)
-		return Double.compare(otra.planta.totalGenerado(), this.planta.totalGenerado()); 
+//		return Double.compare(otra.planta.totalGenerado(), this.planta.totalGenerado()); 
+		return (int) (otra.planta.totalGenerado() - this.planta.totalGenerado());
 	}
 	
 	@Override
