@@ -148,14 +148,6 @@ public class SmartGrids implements ISmartGrids {
 	
 	    planta.actualizarEstado(false, LocalDateTime.parse(fechaHora));
 	}
-
-//	private Planta obtenerPlantaOExcepcion(String nombre) {
-//	    Planta planta = this.plantas.get(nombre);
-//	    if (planta == null) {
-//	        throw new RuntimeException("La planta no existe: " + nombre);
-//	    }
-//	    return planta;
-//	}
 	
 	@Override
 	public boolean estaActiva(String nombre) {
@@ -279,9 +271,6 @@ public class SmartGrids implements ISmartGrids {
 	    if (planta == null) {
 	        throw new RuntimeException("La planta no existe");
 	    }
-	
-//	    LocalDateTime desde = LocalDateTime.parse(fechaDesde);
-//	    LocalDateTime hasta = LocalDateTime.parse(fechaHasta);
 	    
 	    LocalDateTime desde = fechaDesde.contains("T") ? LocalDateTime.parse(fechaDesde) : LocalDate.parse(fechaDesde).atStartOfDay(); 
 	    LocalDateTime hasta = fechaHasta.contains("T") ? LocalDateTime.parse(fechaHasta) : LocalDate.parse(fechaHasta).atTime(23, 59, 59); 
@@ -308,12 +297,7 @@ public class SmartGrids implements ISmartGrids {
 	            PlantasRenovables renovable = (PlantasRenovables) planta;
 	            String fuente = renovable.consultarFuentePrimaria();
 	
-//	            if (resultado.containsKey(fuente)) {
-//	                int cantidad = resultado.get(fuente);
-//	                resultado.put(fuente, cantidad + 1);
-//	            } else {
-//	                resultado.put(fuente, 1);
-//	            }
+
 	            //Sumamos 1 a la fuente correspondiente usando getOrDefault
 	            resultado.put(fuente, resultado.getOrDefault(fuente, 0) + 1); 
 	        }
@@ -329,14 +313,6 @@ public class SmartGrids implements ISmartGrids {
 	
 	    List<String> resultado = new ArrayList<>();
 	
-//	    for (String nombre : plantas.keySet()) {
-//	
-//	        Planta planta = plantas.get(nombre);
-//	
-//	        if (!planta.algunaVezCumplioCuota()) {
-//	            resultado.add(nombre);
-//	        }
-//	    }
 	    for(Planta planta : plantas.values()) {
 	    	if(!planta.algunaVezCumplioCuota()) {
 	    		resultado.add(planta.nombrePlanta()); 
