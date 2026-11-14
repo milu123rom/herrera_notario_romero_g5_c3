@@ -47,6 +47,34 @@ public class Monitoreo {
     boolean correspondeA(Planta planta) {
         return this.planta == planta;
     }
+    
+    public boolean cumpleCuotaEolica(PlantaEolica planta) {
+        return false; //Devuelve false porque un monitoreo común no contiene los datos específicos de un monitoreo eólico.
+    }
+    
+    public boolean cumpleCuotaTermica(PlantaTermica planta, double limiteCO2) {
+        return false; //El monitoreo común devuelve false porque no contiene información sobre emisiones de CO2
+    }
+    
+    public boolean admitidoComoComun() {
+        return true;
+    }
+    
+    public boolean admitidoComoEolico() {
+        return false;
+    }
+
+    public boolean admitidoComoTermico() {
+        return false;
+    }
+    
+    public void registrarEstadoViento(boolean[] horasConVientoBajo, boolean[] horasConVientoSuficiente, double velocidadMinima) {
+        // Un monitoreo común no registra velocidad del viento.
+    }
+    
+    public void agregarVelocidadBaja(StringBuilder resultado, double velocidadMinima, boolean[] horasConVientoSuficiente) {
+        // Los monitoreos comunes no registran velocidad del viento.
+    }
 
     @Override
     public String toString() {

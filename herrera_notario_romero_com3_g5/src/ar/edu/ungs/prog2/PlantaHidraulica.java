@@ -14,6 +14,15 @@ public class PlantaHidraulica extends PlantasRenovables {
         super(capacidadMax, direccion, nombre, activaEstado,
                 fechaHoraPuestaEnFuncionamiento,
                 fuentePrimaria, eficienciaPromedio);
+        
+        if (cantidadTurbinas < 0) {
+            throw new IllegalArgumentException("La cantidad de turbinas no puede ser negativa");
+        }
+
+        if (capacidadEmbalse < 0) {
+            throw new IllegalArgumentException("La capacidad del embalse no puede ser negativa");
+        }
+        
 
         this.cantidadTurbinas = cantidadTurbinas;
         this.capacidadEmbalse = capacidadEmbalse;
@@ -30,6 +39,12 @@ public class PlantaHidraulica extends PlantasRenovables {
                 && monitoreo.correspondeA(this)
                 && monitoreo.consultarEnergiaGenerada()
                         >= capacidadMinimaCuota();
+    }
+    
+    @Override
+    public boolean admiteMonitoreo(Monitoreo monitoreo) {
+        return monitoreo != null
+                && monitoreo.admitidoComoComun();
     }
 
     @Override

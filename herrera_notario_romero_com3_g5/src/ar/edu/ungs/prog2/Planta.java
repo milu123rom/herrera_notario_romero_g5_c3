@@ -1,5 +1,6 @@
 package ar.edu.ungs.prog2;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.Iterator; 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,13 +15,21 @@ public abstract class Planta {
     private LocalDateTime fechaHoraPuestaEnFuncionamiento; // Nota: Si es FechaHora, considera ajustar el tipo
     private List<PeriodoInactividad> periodosInactivos;
 
-    public Planta(double capacidadMax, String direccion, String nombre, boolean activaEstado,  LocalDateTime fechaHoraPuestaEnFuncionamiento) {
+    public Planta(double capacidadMax, String direccion, String nombre,
+            boolean activaEstado, LocalDateTime fechaHoraPuestaEnFuncionamiento) {
+
+        if (capacidadMax <= 0) {
+            throw new IllegalArgumentException(
+                "La capacidad máxima debe ser mayor a cero"
+            );
+        }
+
         this.capacidadMax = capacidadMax;
         this.direccion = direccion;
         this.nombre = nombre;
         this.activaEstado = activaEstado;
         this.fechaHoraPuestaEnFuncionamiento = fechaHoraPuestaEnFuncionamiento;
-        
+
         this.registro = new ArrayList<>();
         this.periodosInactivos = new ArrayList<>();
     }
@@ -51,6 +60,12 @@ public abstract class Planta {
         }
 
         if (!nuevoEstado) {
+        	
+        	if (existenMonitoreosPosteriores(fechaHora)) {
+        	    throw new RuntimeException(
+        	        "No se puede desactivar la planta porque existen monitoreos posteriores"
+        	    );
+        	}
 
             if (!periodosInactivos.isEmpty()) {
                 PeriodoInactividad ultimoPeriodo =
@@ -96,9 +111,9 @@ public abstract class Planta {
     registrar dos monitoreos con la misma fecha y hora.*/
     public boolean registrarMonitoreo(Monitoreo m) { 
 
-        if (m == null || !m.correspondeA(this)) {
-            return false;
-        }
+    	if (m == null || !m.correspondeA(this) || !admiteMonitoreo(m)) {
+    	    return false;
+    	}
 
         LocalDateTime fechaHora = m.consultarFechaHora();
 
@@ -110,13 +125,30 @@ public abstract class Planta {
         }
 
         for (Monitoreo existente : registro) {
-            if (existente.consultarFechaHora().equals(fechaHora)) {
+
+            LocalDateTime fechaExistente = existente.consultarFechaHora();
+
+            if (fechaExistente.getYear() == fechaHora.getYear() && fechaExistente.getDayOfYear() == fechaHora.getDayOfYear()
+                    && fechaExistente.getHour() == fechaHora.getHour()) {
+
                 return false;
             }
         }
 
         registro.add(m);
         return true;
+    }
+    
+    private boolean existenMonitoreosPosteriores(LocalDateTime fechaHora) {
+
+        for (Monitoreo monitoreo : registro) {
+
+            if (!monitoreo.consultarFechaHora().isBefore(fechaHora)) {
+                return true;
+            }
+        }
+
+        return false;
     }
     
     protected double capacidadMaximaParaCalculo() {
@@ -178,7 +210,7 @@ public abstract class Planta {
 	    int[] histograma = new int[24];  //24 horas del dia (0 a 23)
 	
 	    for (Monitoreo m : registro) {
-	    	if(m.consultarFechaHora().isEqual(desde) || m.consultarFechaHora().isAfter(desde) && (m.consultarFechaHora().isEqual(hasta) || m.consultarFechaHora().isBefore(hasta))){
+	    	if (!m.consultarFechaHora().isBefore(desde) && !m.consultarFechaHora().isAfter(hasta)) {
 	    		if(this.cumpleCuota(m)) {
 	    			int hora = m.consultarFechaHora().getHour(); //Devuelve un avlor de 0 a 23
 	    			histograma[hora]++; 
@@ -201,25 +233,7 @@ public abstract class Planta {
 	    return false;
 	}
 
-	protected void recorrerMonitoreosEolicos(boolean[] horasConVientoBajo, boolean[] horasConVientoSuficiente,
-	                                        double velocidadMinima) {
 	
-	    for (Monitoreo monitoreo : registro) {
-	
-	        if (monitoreo instanceof MonitoreoEolico) {
-	
-	            MonitoreoEolico eolico = (MonitoreoEolico) monitoreo;
-	            int hora = eolico.consultarFechaHora().getHour();
-	
-	            if (eolico.consultarVelocidadDelVientoPromedio() < velocidadMinima) {
-	                horasConVientoBajo[hora] = true;
-	            } else {
-	                horasConVientoSuficiente[hora] = true;
-	            }
-	        }
-	    }
-	}
-
 
     public String nombrePlanta() {
     	return this.nombre; 
@@ -228,6 +242,33 @@ public abstract class Planta {
     public boolean estaActiva() {
     	return activaEstado; 
     }
+    
+    public void contarFuenteRenovable(Map<String, Integer> resultado) {
+        // Las plantas no renovables no aportan ninguna fuente.
+    }
+    
+    public boolean admiteMonitoreo(Monitoreo monitoreo) {
+        return false; //devuelve false asi cada subclase puede sobrescribirlo según los monitoreos que admita.
+    }
+    
+    protected void recorrerMonitoreos(boolean[] horasConVientoBajo, boolean[] horasConVientoSuficiente, double velocidadMinima) {
+        for (Monitoreo monitoreo : registro) {
+            monitoreo.registrarEstadoViento(horasConVientoBajo, horasConVientoSuficiente, velocidadMinima);
+        }
+    }
+    
+    //devuelve "" porque las plantas que no son eólicas no tienen horas de viento para informar
+    public String informeHorasViento() {
+        return ""; 
+    }
+    
+    protected void agregarVelocidadesBajas(StringBuilder resultado, double velocidadMinima, boolean[] horasConVientoSuficiente) {
+
+        for (Monitoreo monitoreo : registro) {
+            monitoreo.agregarVelocidadBaja(resultado, velocidadMinima, horasConVientoSuficiente);
+        }
+    }
+    
 
     @Override
     public abstract String toString();

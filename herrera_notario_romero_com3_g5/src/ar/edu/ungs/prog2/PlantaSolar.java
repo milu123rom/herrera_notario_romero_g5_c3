@@ -11,6 +11,18 @@ public class PlantaSolar extends PlantasRenovables {
 
         super(capacidadMax, direccion, nombre, activaEstado, fechaHoraPuestaEnFuncionamiento, fuentePrimaria, eficienciaPromedio);
         
+        if (superficieCubierta < 0) {
+            throw new IllegalArgumentException("La superficie no puede ser negativa");
+        }
+
+        if (cantidadDePaneles < 0) {
+            throw new IllegalArgumentException("La cantidad de paneles no puede ser negativa");
+        }
+
+        if (horasDeRadiacionDiaria < 0 || horasDeRadiacionDiaria > 24) {
+            throw new IllegalArgumentException("Las horas de radiación deben estar entre 0 y 24");
+        }
+        
 
         this.superficieCubierta = superficieCubierta;
         this.cantidadDePaneles = cantidadDePaneles;
@@ -30,6 +42,11 @@ public class PlantaSolar extends PlantasRenovables {
                 && monitoreo.correspondeA(this)
                 && monitoreo.consultarEnergiaGenerada()
                         >= capacidadMinimaCuota();
+    }
+    
+    @Override
+    public boolean admiteMonitoreo(Monitoreo monitoreo) {
+        return monitoreo != null && monitoreo.admitidoComoComun();
     }
 
 

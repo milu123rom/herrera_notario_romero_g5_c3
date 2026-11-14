@@ -19,6 +19,19 @@ public class PlantaEolica extends PlantasRenovables {
         super(capacidadMax, direccion, nombre, activaEstado,
                 fechaHoraPuestaEnFuncionamiento,
                 fuentePrimaria, eficienciaPromedio);
+        
+        if (cantidadDeAerogeneradores < 0) {
+            throw new IllegalArgumentException("La cantidad de aerogeneradores no puede ser negativa");
+        }
+
+        if (alturaDeLasTorres < 0) {
+            throw new IllegalArgumentException("La altura de las torres no puede ser negativa");
+        }
+
+        if (velocidadMinDeVientoNecesaria < 0) {
+            throw new IllegalArgumentException("La velocidad mínima del viento no puede ser negativa");
+        }
+        
 
         this.cantidadDeAerogeneradores = cantidadDeAerogeneradores;
         this.alturaDeLasTorres = alturaDeLasTorres;
@@ -32,38 +45,44 @@ public class PlantaEolica extends PlantasRenovables {
     }
 
     @Override
-    public boolean cumpleCuota(Monitoreo monitoreo) { //verifica que el monitoreo sea eólico, corresponda a esta planta y que la energía generada alcance la cuota.
-        return monitoreo instanceof MonitoreoEolico
-                && monitoreo.correspondeA(this)
-                && monitoreo.consultarEnergiaGenerada()
-                        >= capacidadMinimaCuota();
+    public boolean cumpleCuota(Monitoreo monitoreo) {
+        return monitoreo != null && monitoreo.cumpleCuotaEolica(this);
     }
 
-	public String horasSinVelocidadMinima() {
+    public String horasSinVelocidadMinima() {
+
+        boolean[] horasConVientoBajo = new boolean[24];
+        boolean[] horasConVientoSuficiente = new boolean[24];
+
+        recorrerMonitoreos(horasConVientoBajo, horasConVientoSuficiente, velocidadMinDeVientoNecesaria);
+
+        StringBuilder resultado = new StringBuilder();
+
+        agregarVelocidadesBajas(resultado, velocidadMinDeVientoNecesaria, horasConVientoSuficiente);
+
+        return resultado.toString();
+    }
 	
-	    boolean[] horasConVientoBajo = new boolean[24];
-	    boolean[] horasConVientoSuficiente = new boolean[24];
+	@Override
+	public boolean admiteMonitoreo(Monitoreo monitoreo) {
+	    return monitoreo != null && monitoreo.admitidoComoEolico();
+	}
 	
-	    recorrerMonitoreosEolicos(horasConVientoBajo, horasConVientoSuficiente, velocidadMinDeVientoNecesaria );
-	
-	    StringBuilder resultado = new StringBuilder();
-	
-	    for (int hora = 0; hora < 24; hora++) {
-	
-	        if (horasConVientoBajo[hora] && !horasConVientoSuficiente[hora]) {
-	
-	            if (resultado.length() > 0) {
-	                resultado.append(", ");
-	            }
-	
-	            if (hora < 10) {
-	                resultado.append("0");
-	            }
-	
-	            resultado.append(hora);
-	        }
+	@Override
+	public String informeHorasViento() {
+
+	    String horas = horasSinVelocidadMinima();
+
+	    if (horas.isEmpty()) {
+	        return "";
 	    }
-	
+
+	    StringBuilder resultado = new StringBuilder();
+
+	    resultado.append(nombrePlanta());
+	    resultado.append(": ");
+	    resultado.append(horas);
+
 	    return resultado.toString();
 	}
 

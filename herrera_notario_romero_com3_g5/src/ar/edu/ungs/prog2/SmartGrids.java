@@ -169,11 +169,7 @@ public class SmartGrids implements ISmartGrids {
 	        throw new RuntimeException("La planta no existe");
 	    }
 
-	    if (!(planta instanceof PlantaSolar)
-	            && !(planta instanceof PlantaHidraulica)) {
-	        throw new RuntimeException("Tipo de planta incorrecto");
-	    }
-
+	   
 	    LocalDateTime fecha = LocalDateTime.parse(fechaHora);
 
 	    Monitoreo monitoreo = new Monitoreo(
@@ -194,10 +190,7 @@ public class SmartGrids implements ISmartGrids {
 	        throw new RuntimeException("La planta no existe");
 	    }
 	
-	    if (!(planta instanceof PlantaEolica)) {
-	        throw new RuntimeException("La planta no es eólica");
-	    }
-	
+	   
 	    LocalDateTime fecha = LocalDateTime.parse(fechaHora);
 	
 	    MonitoreoEolico monitoreo = new MonitoreoEolico(
@@ -221,10 +214,7 @@ public class SmartGrids implements ISmartGrids {
 	        throw new RuntimeException("La planta no existe");
 	    }
 	
-	    if (!(planta instanceof PlantaTermica)) {
-	        throw new RuntimeException("La planta no es térmica");
-	    }
-	
+	  
 	    LocalDateTime fecha = LocalDateTime.parse(fechaHora);
 	
 	    MonitoreoTermico monitoreo = new MonitoreoTermico(planta, fecha, energiaGenerada, incidencias,
@@ -283,26 +273,15 @@ public class SmartGrids implements ISmartGrids {
 	}
 
 	
-
+//llama al mismo método sobre todas las plantas y cada una responde según su implementación.
 	@Override
-	public Map<String, Integer> plantasRenovablesPorFuente() {
-	
-//	    Map<String, Integer> resultado = new LinkedHashMap<>();
-	    Map<String, Integer> resultado = new TreeMap<>(); 
-	    
-	    for (Planta planta : plantas.values()) {
-	
-	        if (planta instanceof PlantasRenovables) {
-	
-	            PlantasRenovables renovable = (PlantasRenovables) planta;
-	            String fuente = renovable.consultarFuentePrimaria();
-	
+	public Map<String, Integer> plantasRenovablesPorFuente() { 
+	    Map<String, Integer> resultado = new TreeMap<>();
 
-	            //Sumamos 1 a la fuente correspondiente usando getOrDefault
-	            resultado.put(fuente, resultado.getOrDefault(fuente, 0) + 1); 
-	        }
+	    for (Planta planta : plantas.values()) {
+	        planta.contarFuenteRenovable(resultado);
 	    }
-	
+
 	    return resultado;
 	}
 
@@ -325,29 +304,23 @@ public class SmartGrids implements ISmartGrids {
 
 	@Override
 	public String horasSinVelocidadMinimaPorPlantaEolica() {
-	
+
 	    StringBuilder resultado = new StringBuilder();
-	
+
 	    for (Planta planta : plantas.values()) {
-	
-	        if (planta instanceof PlantaEolica) {
-	
-	            PlantaEolica eolica = (PlantaEolica) planta;
-	            String horas = eolica.horasSinVelocidadMinima();
-	
-	            if (!horas.isEmpty()) {
-	
-	                if (resultado.length() > 0) {
-	                    resultado.append("\n");
-	                }
-	
-	                resultado.append(eolica.nombrePlanta());
-	                resultado.append(": ");
-	                resultado.append(horas);
+
+	        String informe = planta.informeHorasViento();
+
+	        if (!informe.isEmpty()) {
+
+	            if (resultado.length() > 0) {
+	                resultado.append("\n");
 	            }
+
+	            resultado.append(informe);
 	        }
 	    }
-	
+
 	    return resultado.toString();
 	}
 

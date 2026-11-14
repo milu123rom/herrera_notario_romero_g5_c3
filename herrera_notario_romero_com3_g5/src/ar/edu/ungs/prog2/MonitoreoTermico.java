@@ -28,6 +28,25 @@ public class MonitoreoTermico extends Monitoreo {
     public double consultarCombustibleUtilizado() {
         return cantDeCombustible;
     }
+    
+    @Override
+    public boolean cumpleCuotaTermica(
+            PlantaTermica planta, double limiteCO2) {
+
+        return correspondeA(planta)
+                && consultarEnergiaGenerada() >= planta.capacidadMinimaCuota()
+                && cantidadDeCO2Generado < limiteCO2;
+    }
+    
+    @Override
+    public boolean admitidoComoComun() {
+        return false; //Esto permite que las plantas solares acepten únicamente monitoreos comunes.
+    }
+    
+    @Override
+    public boolean admitidoComoTermico() {
+        return true;
+    }
 
     @Override
     public String toString() {
