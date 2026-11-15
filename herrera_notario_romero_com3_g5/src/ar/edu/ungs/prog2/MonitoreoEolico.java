@@ -50,25 +50,13 @@ public class MonitoreoEolico extends Monitoreo {
         }
     }
     
+    
     @Override
-    @Override
-    public void agregarVelocidadBaja(StringBuilder resultado,
-            double velocidadMinima,
-            boolean[] horasConVientoSuficiente) {
+    public void agregarVelocidadBaja(double[] velocidadesMaximas) {
+        int hora = consultarFechaHora().getHour();
 
-        int hora = fechaHora.getHour();
-
-        if (velocidadDelVientoPromedio < velocidadMinima
-                && !horasConVientoSuficiente[hora]) {
-
-            if (hora < 10) {
-                resultado.append("0");
-            }
-
-            resultado.append(hora);
-            resultado.append(": ");
-            resultado.append(velocidadDelVientoPromedio);
-            resultado.append(" m/s\n");
+        if (velocidadDelVientoPromedio > velocidadesMaximas[hora]) {
+            velocidadesMaximas[hora] = velocidadDelVientoPromedio;
         }
     }
     

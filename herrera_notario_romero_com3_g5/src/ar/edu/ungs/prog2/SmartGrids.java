@@ -307,23 +307,19 @@ public class SmartGrids implements ISmartGrids {
 
 	    StringBuilder resultado = new StringBuilder();
 
+	    resultado.append("Plantas Eolicas: Horas con poco viento\n");
+
 	    for (Planta planta : plantas.values()) {
 
 	        String informe = planta.informeHorasViento();
 
 	        if (!informe.isEmpty()) {
-
-	            if (resultado.length() > 0) {
-	                resultado.append("\n");
-	            }
-
 	            resultado.append(informe);
 	        }
 	    }
 
 	    return resultado.toString();
 	}
-
 
 	@Override
 	public int limpiarMonitoreosSinDatos() {

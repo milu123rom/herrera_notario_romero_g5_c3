@@ -14,6 +14,7 @@ public abstract class Planta {
     private boolean activaEstado;
     private LocalDateTime fechaHoraPuestaEnFuncionamiento; // Nota: Si es FechaHora, considera ajustar el tipo
     private List<PeriodoInactividad> periodosInactivos;
+    private LocalDateTime fechaUltimoMonitoreo;
 
     public Planta(double capacidadMax, String direccion, String nombre,
             boolean activaEstado, LocalDateTime fechaHoraPuestaEnFuncionamiento) {
@@ -136,19 +137,18 @@ public abstract class Planta {
         }
 
         registro.add(m);
+
+        if (fechaUltimoMonitoreo == null || fechaHora.isAfter(fechaUltimoMonitoreo)) {
+
+            fechaUltimoMonitoreo = fechaHora;
+        }
+
         return true;
     }
     
     private boolean existenMonitoreosPosteriores(LocalDateTime fechaHora) {
 
-        for (Monitoreo monitoreo : registro) {
-
-            if (!monitoreo.consultarFechaHora().isBefore(fechaHora)) {
-                return true;
-            }
-        }
-
-        return false;
+        return fechaUltimoMonitoreo != null && !fechaUltimoMonitoreo.isBefore(fechaHora);
     }
     
     protected double capacidadMaximaParaCalculo() {
@@ -168,6 +168,19 @@ public abstract class Planta {
     			eliminados++; 
     		}
     	}
+    	
+    	fechaUltimoMonitoreo = null;
+
+    	for (Monitoreo monitoreo : registro) {
+
+    	    LocalDateTime fecha = monitoreo.consultarFechaHora();
+
+    	    if (fechaUltimoMonitoreo == null || fecha.isAfter(fechaUltimoMonitoreo)) {
+
+    	        fechaUltimoMonitoreo = fecha;
+    	    }
+    	}
+    	
     	return eliminados; 
     }
     
@@ -262,10 +275,10 @@ public abstract class Planta {
         return ""; 
     }
     
-    protected void agregarVelocidadesBajas(StringBuilder resultado, double velocidadMinima, boolean[] horasConVientoSuficiente) {
+    protected void agregarVelocidadesBajas(double[] velocidadesMaximas) {
 
         for (Monitoreo monitoreo : registro) {
-            monitoreo.agregarVelocidadBaja(resultado, velocidadMinima, horasConVientoSuficiente);
+            monitoreo.agregarVelocidadBaja(velocidadesMaximas);
         }
     }
     

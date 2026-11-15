@@ -72,8 +72,8 @@ public class Monitoreo {
         // Un monitoreo común no registra velocidad del viento.
     }
     
-    public void agregarVelocidadBaja(StringBuilder resultado, double velocidadMinima, boolean[] horasConVientoSuficiente) {
-        // Los monitoreos comunes no registran velocidad del viento.
+    public void agregarVelocidadBaja(double[] velocidadesMaximas) {
+        // Las otras clases de monitoreo no registran viento.
     }
 
     @Override

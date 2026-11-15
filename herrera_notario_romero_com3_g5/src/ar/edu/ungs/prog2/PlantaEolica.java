@@ -53,12 +53,38 @@ public class PlantaEolica extends PlantasRenovables {
 
         boolean[] horasConVientoBajo = new boolean[24];
         boolean[] horasConVientoSuficiente = new boolean[24];
+        double[] velocidadesMaximas = new double[24];
 
-        recorrerMonitoreos(horasConVientoBajo, horasConVientoSuficiente, velocidadMinDeVientoNecesaria);
+        recorrerMonitoreos(horasConVientoBajo,
+                horasConVientoSuficiente,
+                velocidadMinDeVientoNecesaria);
+
+        agregarVelocidadesBajas(velocidadesMaximas);
 
         StringBuilder resultado = new StringBuilder();
 
-        agregarVelocidadesBajas(resultado, velocidadMinDeVientoNecesaria, horasConVientoSuficiente);
+        for (int hora = 0; hora < 24; hora++) {
+
+            if (horasConVientoBajo[hora] && !horasConVientoSuficiente[hora]) {
+            	
+            	resultado.append(" ");
+
+                if (hora < 10) {
+                    resultado.append("0");
+                }
+
+                resultado.append(hora);
+                resultado.append(": ");
+                
+                if (velocidadesMaximas[hora] == (int) velocidadesMaximas[hora]) {
+                    resultado.append((int) velocidadesMaximas[hora]);
+                } else {
+                    resultado.append(velocidadesMaximas[hora]);
+                }
+                
+                resultado.append(" m/s\n");
+            }
+        }
 
         return resultado.toString();
     }
@@ -67,6 +93,7 @@ public class PlantaEolica extends PlantasRenovables {
 	public boolean admiteMonitoreo(Monitoreo monitoreo) {
 	    return monitoreo != null && monitoreo.admitidoComoEolico();
 	}
+	
 	
 	@Override
 	public String informeHorasViento() {
@@ -79,8 +106,18 @@ public class PlantaEolica extends PlantasRenovables {
 
 	    StringBuilder resultado = new StringBuilder();
 
+	    resultado.append("- ");
 	    resultado.append(nombrePlanta());
 	    resultado.append(": ");
+	    
+	    if (velocidadMinDeVientoNecesaria == (int) velocidadMinDeVientoNecesaria) {
+	        resultado.append((int) velocidadMinDeVientoNecesaria);
+	    } else {
+	        resultado.append(velocidadMinDeVientoNecesaria);
+	    }
+	    
+	    resultado.append(" m/s\n");
+
 	    resultado.append(horas);
 
 	    return resultado.toString();
